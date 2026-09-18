@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marvel Portal - Giriş və Qeydiyyat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,500;0,700;0,900;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --marvel-red: #e23636;
+      --marvel-dark-red: #990000;
+      --neon-cyan: #00f0ff;
+      --neon-purple: #bd00ff;
+      --neon-gold: #ffd700;
+      --glass-bg: rgba(12, 12, 18, 0.55);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --text-main: #ffffff;
+      --text-muted: #a0a5b5;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+      user-select: none;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #030305;
+      color: var(--text-main);
+      overflow-x: hidden;
+      position: relative;
+      padding: 20px 0;
+    }
+
+    /* Dynamic Marvel Dark Background */
+    .marvel-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background: 
+        linear-gradient(135deg, rgba(3,3,5,0.92) 0%, rgba(15,3,8,0.85) 50%, rgba(3,3,5,0.95) 100%),
+        url('https://images.unsplash.com/photo-1635863138275-d9b33299680b?auto=format&fit=crop&w=2000&q=80') center/cover no-repeat;
+      filter: saturate(1.2) contrast(1.1);
+      transform: scale(1.02);
+      transition: transform 10s ease-out;
+    }
+
+    .particles {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, rgba(226, 54, 54, 0.15) 0%, transparent 60%);
+    }
+
+    /* Container & Glassmorphism Mirror Effect */
+    .auth-container {
+      width: 100%;
+      max-width: 480px;
+      perspective: 1200px;
+      padding: 15px;
+    }
+
+    .glass-card {
+      position: relative;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 40px 35px;
+      box-shadow: 
+        0 30px 60px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.5s ease;
+    }
+
+    /* Mirror Reflection Overlay */
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent 42%,
+        rgba(255, 255, 255, 0.08) 48%,
+        rgba(255, 255, 255, 0.18) 50%,
+        rgba(255, 255, 255, 0.08) 52%,
+        transparent 58%
+      );
+      transform: rotate(25deg);
+      pointer-events: none;
+      animation: mirrorShine 8s infinite linear;
+    }
+
+    @keyframes mirrorShine {
+      0% { transform: translateY(-100%) rotate(25deg); }
+      20% { transform: translateY(100%) rotate(25deg); }
+      100% { transform: translateY(100%) rotate(25deg); }
+    }
+
+    /* Marvel Header Badge */
+    .marvel-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .marvel-logo {
+      display: inline-block;
+      background: var(--marvel-red);
+      color: #fff;
+      font-weight: 900;
+      font-size: 26px;
+      letter-spacing: -1px;
+      padding: 4px 14px;
+      text-transform: uppercase;
+      transform: scaleY(1.1);
+      box-shadow: 0 0 20px rgba(226, 54, 54, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      margin-bottom: 12px;
+    }
+
+    .form-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    /* Form Views */
+    .form-view {
+      display: none;
+      opacity: 0;
+      transform: translateY(15px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .form-view.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Form Groups & Inputs */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .full-width {
+      grid-column: span 2;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      font-size: 14px;
+      transition: color 0.3s ease;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .input-field::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* NEON LIGHT GLOW ON CLICK / FOCUS */
+    .input-field:focus {
+      border-color: var(--neon-cyan);
+      background: rgba(0, 240, 255, 0.05);
+      box-shadow: 
+        0 0 10px rgba(0, 240, 255, 0.5),
+        0 0 20px rgba(0, 240, 255, 0.2),
+        inset 0 0 10px rgba(0, 240, 255, 0.1);
+    }
+
+    .input-field:focus + i, 
+    .input-wrapper:focus-within i {
+      color: var(--neon-cyan);
+      text-shadow: 0 0 8px var(--neon-cyan);
+    }
+
+    /* Alternate Neon Color for Register */
+    #register-form .input-field:focus {
+      border-color: var(--neon-purple);
+      background: rgba(189, 0, 255, 0.05);
+      box-shadow: 
+        0 0 10px rgba(189, 0, 255, 0.5),
+        0 0 20px rgba(189, 0, 255, 0.2),
+        inset 0 0 10px rgba(189, 0, 255, 0.1);
+    }
+
+    #register-form .input-field:focus + i, 
+    #register-form .input-wrapper:focus-within i {
+      color: var(--neon-purple);
+      text-shadow: 0 0 8px var(--neon-purple);
+    }
+
+    /* Submit Button */
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--marvel-red) 0%, var(--marvel-dark-red) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(226, 54, 54, 0.4);
+      margin-top: 10px;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(226, 54, 54, 0.7);
+      background: linear-gradient(135deg, #f34545 0%, #b30000 100%);
+    }
+
+    .submit-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* Footer / Switch Mode Links */
+    .form-footer {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .switch-link {
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+      margin-left: 6px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border-bottom: 1px stroke transparent;
+    }
+
+    .switch-link:hover {
+      color: var(--neon-cyan);
+      text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+    }
+
+    #to-login:hover {
+      color: var(--neon-purple);
+      text-shadow: 0 0 8px rgba(189, 0, 255, 0.6);
+    }
+
+    /* Alerts / Validation Message */
+    .alert-msg {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert-error {
+      background: rgba(226, 54, 54, 0.2);
+      border: 1px solid var(--marvel-red);
+      color: #ff8e8e;
+    }
+
+    .alert-success {
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 480px) {
+      .glass-card {
+        padding: 30px 20px;
+      }
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .full-width {
+        grid-column: span 1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="marvel-bg"></div>
+  <div class="particles"></div>
+
+  <div class="auth-container">
+    <div class="glass-card">
+      
+      <!-- Marvel Header -->
+      <div class="marvel-header">
+        <div class="marvel-logo">MARVEL</div>
+        <div class="form-title" id="header-title">Daxil Ol</div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div class="form-view active" id="login-view">
+        <div class="alert-msg alert-error" id="login-alert">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Daxil edilən məlumatlar yanlışdır!</span>
+        </div>
+
+        <form id="login-form">
+          <div class="input-group">
+            <label for="login-username">İstifadəçi Adı və ya Email</label>
+            <div class="input-wrapper">
+              <input type="text" id="login-username" class="input-field" placeholder="İstifadəçi adınızı daxil edin" required autocomplete="off">
+              <i class="fa-solid fa-user"></i>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="login-password">Şifrə</label>
+            <div class="input-wrapper">
+              <input type="password" id="login-password" class="input-field" placeholder="••••••••" required>
+              <i class="fa-solid fa-lock"></i>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            Giriş Et <i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i>
+          </button>
+        </form>
+
+        <div class="form-footer">
+          Hesabınız yoxdur? 
+          <span class="switch-link" id="to-register">Qeydiyyatdan keçin</span>
+        </div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div class="form-view" id="register-view">
+        <div class="alert-msg alert-error" id="register-alert">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span id="register-alert-text">Xəta baş verdi!</span>
+        </div>
+        <div class="alert-msg alert-success" id="register-success">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>Qeydiyyat tamamlandı! Girişə yönləndirilirsiniz...</span>
+        </div>
+
+        <form id="register-form">
+          <div class="form-grid">
+            
+            <!-- First Name -->
+            <div class="input-group">
+              <label for="reg-firstname">Ad (Firstname)</label>
+              <div class="input-wrapper">
+                <input type="text" id="reg-firstname" class="input-field" placeholder="Adınız" required autocomplete="off">
+                <i class="fa-solid fa-id-card"></i>
+              </div>
+            </div>
+
+            <!-- Last Name -->
+            <div class="input-group">
+              <label for="reg-lastname">Soyad (Lastname)</label>
+              <div class="input-wrapper">
+                <input type="text" id="reg-lastname" class="input-field" placeholder="Soyadınız" required autocomplete="off">
+                <i class="fa-solid fa-id-card"></i>
+              </div>
+            </div>
+
+            <!-- Username -->
+            <div class="input-group full-width">
+              <label for="reg-username">İstifadəçi Adı (Username)</label>
+              <div class="input-wrapper">
+                <input type="text" id="reg-username" class="input-field" placeholder="Ləqəbiniz (məs: spider_man)" required autocomplete="off">
+                <i class="fa-solid fa-at"></i>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="input-group full-width">
+              <label for="reg-email">E-poçt (Email)</label>
+              <div class="input-wrapper">
+                <input type="email" id="reg-email" class="input-field" placeholder="nümunə@marvel.com" required autocomplete="off">
+                <i class="fa-solid fa-envelope"></i>
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="input-group">
+              <label for="reg-password">Şifrə (Password)</label>
+              <div class="input-wrapper">
+                <input type="password" id="reg-password" class="input-field" placeholder="••••••••" required>
+                <i class="fa-solid fa-key"></i>
+              </div>
+            </div>
+
+            <!-- Password Again -->
+            <div class="input-group">
+              <label for="reg-password-again">Şifrə Təkrarı</label>
+              <div class="input-wrapper">
+                <input type="password" id="reg-password-again" class="input-field" placeholder="••••••••" required>
+                <i class="fa-solid fa-shield-halved"></i>
+              </div>
+            </div>
+
+          </div>
+
+          <button type="submit" class="submit-btn" style="background: linear-gradient(135deg, #8a2be2 0%, #4a00e0 100%); border-color: rgba(189, 0, 255, 0.4);">
+            Qeydiyyatı Tamamla <i class="fa-solid fa-user-plus" style="margin-left: 6px;"></i>
+          </button>
+        </form>
+
+        <div class="form-footer">
+          Artıq hesabınız var? 
+          <span class="switch-link" id="to-login">Daxil olun</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const loginView = document.getElementById('login-view');
+    const registerView = document.getElementById('register-view');
+    const toRegisterBtn = document.getElementById('to-register');
+    const toLoginBtn = document.getElementById('to-login');
+    const headerTitle = document.getElementById('header-title');
+
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    const loginAlert = document.getElementById('login-alert');
+    const registerAlert = document.getElementById('register-alert');
+    const registerAlertText = document.getElementById('register-alert-text');
+    const registerSuccess = document.getElementById('register-success');
+
+    // Switch Views
+    toRegisterBtn.addEventListener('click', () => {
+      loginView.classList.remove('active');
+      setTimeout(() => {
+        registerView.classList.add('active');
+        headerTitle.textContent = "Qeydiyyat";
+        loginAlert.style.display = 'none';
+      }, 200);
+    });
+
+    toLoginBtn.addEventListener('click', () => {
+      registerView.classList.remove('active');
+      setTimeout(() => {
+        loginView.classList.add('active');
+        headerTitle.textContent = "Daxil Ol";
+        registerAlert.style.display = 'none';
+        registerSuccess.style.display = 'none';
+      }, 200);
+    });
+
+    // Helper: LocalStorage Users
+    function getUsers() {
+      return JSON.parse(localStorage.getItem('marvel_app_users') || '[]');
+    }
+
+    function saveUser(user) {
+      const users = getUsers();
+      users.push(user);
+      localStorage.setItem('marvel_app_users', JSON.stringify(users));
+    }
+
+    // Register Handler
+    registerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const firstname = document.getElementById('reg-firstname').value.trim();
+      const lastname = document.getElementById('reg-lastname').value.trim();
+      const username = document.getElementById('reg-username').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const passwordAgain = document.getElementById('reg-password-again').value;
+
+      registerAlert.style.display = 'none';
+      registerSuccess.style.display = 'none';
+
+      // Validation 1: Passwords Match
+      if (password !== passwordAgain) {
+        registerAlertText.textContent = "Şifrələr bir-biri ilə üst-üstə düşmür!";
+        registerAlert.style.display = 'flex';
+        return;
+      }
+
+      // Validation 2: User Exists
+      const existingUsers = getUsers();
+      const userExists = existingUsers.some(u => u.username === username || u.email === email);
+
+      if (userExists) {
+        registerAlertText.textContent = "Bu istifadəçi adı və ya e-poçt artıq qeydiyyatdan keçib!";
+        registerAlert.style.display = 'flex';
+        return;
+      }
+
+      // Save User
+      const newUser = { firstname, lastname, username, email, password };
+      saveUser(newUser);
+
+      // Success
+      registerSuccess.style.display = 'flex';
+      registerForm.reset();
+
+      // Automatically redirect to login after 1.5 seconds
+      setTimeout(() => {
+        toLoginBtn.click();
+        document.getElementById('login-username').value = username;
+      }, 1500);
+    });
+
+    // Login Handler
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const userInput = document.getElementById('login-username').value.trim();
+      const passInput = document.getElementById('login-password').value;
+
+      loginAlert.style.display = 'none';
+
+      const users = getUsers();
+      const matchedUser = users.find(u => 
+        (u.username === userInput || u.email === userInput) && u.password === passInput
+      );
+
+      if (matchedUser) {
+        alert(`Xoş gəldiniz, ${matchedUser.firstname} ${matchedUser.lastname}!`);
+      } else {
+        // If user not found, suggest registering
+        loginAlert.style.display = 'flex';
+      }
+    });
+  </script>
+</body>
+</html>
